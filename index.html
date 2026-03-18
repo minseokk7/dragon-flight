@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dragon Flight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=11">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <div id="ui-layer">
+            <div id="top-bar">
+                <div id="lives-display">❤️❤️❤️</div>
+                <div id="level-display">LV. 1</div>
+                <div id="score-block">
+                    <div class="top-bar-best">BEST <span id="top-bar-high-score">0</span></div>
+                    <span id="score-display">0</span>
+                </div>
+            </div>
+            
+            <div id="xp-bar-container">
+                <div id="xp-bar-fill"></div>
+            </div>
+
+            <div id="start-screen" class="screen active">
+                <h1>DRAGON<br>FLIGHT</h1>
+                <p>Drag to move & auto-shoot</p>
+                <div id="start-leaderboard-container">
+                    <h3>GLOBAL TOP 5</h3>
+                    <ul id="start-leaderboard-list">
+                        <li>Loading...</li>
+                    </ul>
+                </div>
+                
+                <div id="high-score-display" class="high-score-text">BEST: 0</div>
+                <button id="start-btn" class="glass-btn">START GAME</button>
+            </div>
+            
+            <div id="game-over-screen" class="screen hidden">
+                <h2>GAME OVER</h2>
+                <div class="score-box">
+                    <p>SCORE</p>
+                    <span id="final-score">0</span>
+                    <p class="best-score-label">BEST</p>
+                    <span id="end-high-score">0</span>
+                </div>
+                
+                <div id="score-submit-container" class="hidden">
+                    <input type="text" id="player-name-input" placeholder="Your Name" maxlength="10" autocomplete="off">
+                    <button id="submit-score-btn" class="glass-btn small-btn">SUBMIT RANK</button>
+                </div>
+
+                <div id="end-leaderboard-container">
+                    <h3>GLOBAL TOP 5</h3>
+                    <ul id="end-leaderboard-list">
+                        <li>Loading...</li>
+                    </ul>
+                </div>
+
+                <button id="restart-btn" class="glass-btn">PLAY AGAIN</button>
+            </div>
+
+            <div id="level-up-screen" class="screen hidden">
+                <h2 id="level-up-title">LEVEL UP!</h2>
+                <p id="level-up-desc">Choose an upgrade</p>
+                <div id="upgrade-cards">
+                    <div class="upgrade-card" id="upgrade-1">
+                        <div class="upgrade-icon">⚔️</div>
+                        <h3 class="upgrade-name">Weapon Up</h3>
+                        <p class="upgrade-text">Increase projectiles</p>
+                    </div>
+                    <div class="upgrade-card" id="upgrade-2">
+                        <div class="upgrade-icon">⚡</div>
+                        <h3 class="upgrade-name">Attack Speed</h3>
+                        <p class="upgrade-text">Fire faster</p>
+                    </div>
+                    <div class="upgrade-card" id="upgrade-3">
+                        <div class="upgrade-icon">🧲</div>
+                        <h3 class="upgrade-name">Magnet</h3>
+                        <p class="upgrade-text">Increased pickup range</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js?v=12"></script>
+</body>
+</html>
