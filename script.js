@@ -50,6 +50,7 @@ async function submitScore() {
     if(!supabaseClient) return;
     const nameInput = document.getElementById('player-name-input');
     const name = nameInput.value.trim().toUpperCase() || 'ANONYMOUS';
+    const finalName = name.substring(0, 10);
     
     // Disable button to prevent spam
     const submitBtn = document.getElementById('submit-score-btn');
@@ -57,11 +58,33 @@ async function submitScore() {
     submitBtn.innerText = 'Submitting...';
 
     try {
-        const { error } = await supabaseClient
+        // 기존 점수 확인 (동일 이름이 있는지) - 여러 개가 있을 수 있으므로 정렬하여 최상위 하나만 확인
+        const { data: results, error: fetchError } = await supabaseClient
             .from('leaderboard')
-            .insert([{ player_name: name.substring(0, 10), score: score }]);
-            
-        if (error) throw error;
+            .select('id, score')
+            .eq('player_name', finalName)
+            .order('score', { ascending: false });
+
+        if (fetchError) throw fetchError;
+
+        const existingData = results && results.length > 0 ? results[0] : null;
+
+        if (existingData) {
+            // 이미 존재하면, 새로운 점수가 더 높을 때만 업데이트
+            if (score > existingData.score) {
+                const { error: updateError } = await supabaseClient
+                    .from('leaderboard')
+                    .update({ score: score })
+                    .eq('id', existingData.id);
+                if (updateError) throw updateError;
+            }
+        } else {
+            // 존재하지 않으면 새로 삽입
+            const { error: insertError } = await supabaseClient
+                .from('leaderboard')
+                .insert([{ player_name: finalName, score: score }]);
+            if (insertError) throw insertError;
+        }
         
         // Hide submit UI, refresh board
         document.getElementById('score-submit-container').classList.add('hidden');
