@@ -147,7 +147,11 @@ const keys = {
     ArrowLeft: false,
     ArrowRight: false,
     ArrowUp: false,
-    ArrowDown: false
+    ArrowDown: false,
+    KeyW: false,
+    KeyA: false,
+    KeyS: false,
+    KeyD: false
 };
 
 // Colors
@@ -357,17 +361,18 @@ class Player {
         }
         // Keyboard movement overrides mouse/touch if active
         let movedWithKeys = false;
-        if (keys.ArrowLeft) { this.x -= this.speed; movedWithKeys = true; }
-        if (keys.ArrowRight) { this.x += this.speed; movedWithKeys = true; }
-        if (keys.ArrowUp) { this.y -= this.speed; movedWithKeys = true; }
-        if (keys.ArrowDown) { this.y += this.speed; movedWithKeys = true; }
+        if (keys.ArrowLeft || keys.KeyA) { this.x -= this.speed; movedWithKeys = true; }
+        if (keys.ArrowRight || keys.KeyD) { this.x += this.speed; movedWithKeys = true; }
+        if (keys.ArrowUp || keys.KeyW) { this.y -= this.speed; movedWithKeys = true; }
+        if (keys.ArrowDown || keys.KeyS) { this.y += this.speed; movedWithKeys = true; }
 
         if (!movedWithKeys && isInteracting) {
-            // Smoothly move towards target
+            // Smoothly move towards target (Higher value = Snappier)
             const dx = targetX - this.x;
             const dy = targetY - this.y;
-            this.x += dx * 0.15;
-            this.y += dy * 0.15;
+            // X축은 더 기민하게(0.8), Y축은 부드럽게(0.3) 따라오도록 설정
+            this.x += dx * 0.8; 
+            this.y += dy * 0.3;
         } else if (movedWithKeys) {
             // Update target to current pos so it doesn't snap back
             targetX = this.x;
