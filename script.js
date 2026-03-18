@@ -210,19 +210,18 @@ function updateTargetPosition(e) {
     targetX = clientX - rect.left;
     targetY = clientY - rect.top;
     
-    // Keep target within bounds
-    targetX = Math.max(20, Math.min(canvas.width - 20, targetX));
-    targetY = Math.max(20, Math.min(canvas.height - 20, targetY));
+    // Allow target to go slightly outside to ensure dragon reaches the very edge
+    targetX = Math.max(-50, Math.min(canvas.width + 50, targetX));
+    targetY = Math.max(-50, Math.min(canvas.height + 50, targetY));
 }
 
 canvas.addEventListener('mousedown', handleInteractionStart);
-canvas.addEventListener('mousemove', handleInteractionMove);
-canvas.addEventListener('mouseup', handleInteractionEnd);
-canvas.addEventListener('mouseleave', handleInteractionEnd);
+window.addEventListener('mousemove', handleInteractionMove);
+window.addEventListener('mouseup', handleInteractionEnd);
 
 canvas.addEventListener('touchstart', handleInteractionStart, {passive: true});
-canvas.addEventListener('touchmove', handleInteractionMove, {passive: true});
-canvas.addEventListener('touchend', handleInteractionEnd);
+window.addEventListener('touchmove', handleInteractionMove, {passive: true});
+window.addEventListener('touchend', handleInteractionEnd);
 
 class Player {
     constructor() {
