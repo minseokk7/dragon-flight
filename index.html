@@ -12,6 +12,8 @@
         <canvas id="game-canvas"></canvas>
         
         <div id="ui-layer">
+            <button id="pause-btn" class="glass-btn small-btn" style="position: absolute; top: 15px; right: 20px; padding: 5px 10px; font-size: 1.2rem; display: none; z-index: 100;" title="Pause Game">⏸</button>
+            
             <div id="top-bar">
                 <div id="lives-display">❤️❤️❤️</div>
                 <div id="level-display">LV. 1</div>
@@ -37,6 +39,20 @@
                 
                 <div id="high-score-display" class="high-score-text">BEST: 0</div>
                 <button id="start-btn" class="glass-btn">START GAME</button>
+            </div>
+
+            <div id="pause-screen" class="screen hidden">
+                <h2 style="color: #00ffff; text-shadow: 0 0 20px rgba(0,255,255,0.5);">PAUSED</h2>
+                <div class="settings-panel" style="margin-bottom: 30px; background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); width: 80%; max-width: 300px;">
+                    <h3 style="color: #ff00ff; margin-bottom: 15px; font-size: 1.2rem; text-align: center;">AUDIO SETTINGS</h3>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                        <span style="font-size: 1rem; font-weight: bold; font-family: 'Outfit', sans-serif;">SFX</span>
+                        <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" style="cursor: pointer; flex-grow: 1;">
+                        <span id="volume-label" style="font-weight: bold; width: 40px; text-align: right; font-family: 'Outfit', sans-serif;">50%</span>
+                    </div>
+                </div>
+                <button id="resume-btn" class="glass-btn" style="margin-bottom: 15px;">▶ RESUME</button>
+                <button id="quit-btn" class="glass-btn" style="border-color: #ff3333; color: #ff3333;">⏹ QUIT GAME</button>
             </div>
             
             <div id="game-over-screen" class="screen hidden">
@@ -88,6 +104,6 @@
     </div>
     <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js?v=14"></script>
+    <script src="script.js?v=15"></script>
 </body>
 </html>

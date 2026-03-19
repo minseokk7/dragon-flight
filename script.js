@@ -12,6 +12,13 @@ const levelDisplay = document.getElementById('level-display');
 const xpBarFill = document.getElementById('xp-bar-fill');
 const levelUpScreen = document.getElementById('level-up-screen');
 
+const pauseBtn = document.getElementById('pause-btn');
+const pauseScreen = document.getElementById('pause-screen');
+const resumeBtn = document.getElementById('resume-btn');
+const quitBtn = document.getElementById('quit-btn');
+const volumeSlider = document.getElementById('volume-slider');
+const volumeLabel = document.getElementById('volume-label');
+
 // Supabase Setup
 const supabaseUrl = 'https://qfppeugbiutluowvwwlr.supabase.co';
 const supabaseKey = 'sb_publishable_ATeLhlG8FymVhOt21d0g2Q_BLF1WqQc';
@@ -167,6 +174,77 @@ let xpGems = [];
 let boss = null;
 let floatingTexts = [];
 
+// --- AUDIO SYSTEM ---
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+let globalGain;
+let sfxVolume = 0.5;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new AudioContext();
+        globalGain = audioCtx.createGain();
+        globalGain.gain.value = sfxVolume;
+        globalGain.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function playSound(type) {
+    if (!audioCtx || globalGain.gain.value === 0) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(globalGain);
+    
+    const now = audioCtx.currentTime;
+    
+    if (type === 'shoot') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+    } else if (type === 'hit') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+    } else if (type === 'explosion') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(100, now);
+        osc.frequency.exponentialRampToValueAtTime(10, now + 0.3);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+    } else if (type === 'levelup') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.setValueAtTime(600, now + 0.1);
+        osc.frequency.setValueAtTime(800, now + 0.2);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.5);
+        osc.start(now);
+        osc.stop(now + 0.5);
+    } else if (type === 'boss') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.linearRampToValueAtTime(50, now + 1);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0, now + 1);
+        osc.start(now);
+        osc.stop(now + 1);
+    }
+}
+
 // Input handling
 const keys = {
     ArrowLeft: false,
@@ -194,6 +272,7 @@ const colors = {
 
 window.addEventListener('keydown', (e) => {
     if (keys.hasOwnProperty(e.code)) keys[e.code] = true;
+    if ((e.code === 'Escape' || e.code === 'KeyP') && isPlaying) togglePause();
 });
 
 window.addEventListener('keyup', (e) => {
@@ -416,6 +495,7 @@ class Player {
     }
 
     shoot() {
+        playSound('shoot');
         const snoutY = this.y - 27; // Y position of the dragon's snout scaled down (55 / 2)
         
         if (this.weaponLevel === 1) {
@@ -1046,6 +1126,7 @@ function takeDamage() {
     updateLivesDisplay();
     
     createExplosion(player.x, player.y, 'basic');
+    playSound('explosion');
     triggerScreenShake(15, 8); // Shake duration, magnitude
     
     if (lives <= 0) {
@@ -1099,6 +1180,7 @@ function checkLevelUp() {
         xp -= maxXp; // Keep remainder, or reset to 0 based on preference
         maxXp = Math.floor(maxXp * 1.5); // Increase next level requirement
         level++;
+        playSound('levelup');
         updateXpDisplay();
         triggerLevelUp();
     }
@@ -1388,6 +1470,7 @@ function animate(currentTime) {
             if (dist - boss.radius - p.radius < 0) {
                 boss.hp -= 2; // player bullets do 2 damage
                 boss.hitFlashTimer = 3;
+                playSound('hit');
                 projectiles.splice(j, 1);
                 
                 // Hit effect
@@ -1395,6 +1478,7 @@ function animate(currentTime) {
 
                 if (boss.hp <= 0) {
                     // Boss Dies
+                    playSound('explosion');
                     triggerScreenShake(40, 15); // Big shake when boss dies
                     createExplosion(boss.x, boss.y, 'tough');
                     createExplosion(boss.x - 30, boss.y + 20, 'tough');
@@ -1444,6 +1528,7 @@ function animate(currentTime) {
                 projectiles.splice(j, 1);
                 enemies[i].hp -= player.baseDamage;
                 enemies[i].hitFlashTimer = 3;
+                playSound('hit');
                 
                 // Elemental Effects On Hit
                 if (projectile.element === 'Fire') {
@@ -1502,6 +1587,7 @@ function animate(currentTime) {
                 
                 if (enemies[i].hp <= 0) {
                     // Destroy enemy
+                    playSound('explosion');
                     createExplosion(enemies[i].x, enemies[i].y, enemies[i].type);
                     const scoreGain = enemies[i].type === 'tough' ? 50 : 10;
                     floatingTexts.push(new FloatingText(enemies[i].x, enemies[i].y - 20, '+' + scoreGain, '#00ffff'));
@@ -1543,9 +1629,11 @@ function animate(currentTime) {
 }
 
 function startGame() {
+    initAudio();
     startScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
     topBar.classList.add('visible');
+    pauseBtn.style.display = 'block';
     
     // Pull the latest high score from storage just in case
     highScore = getStoredHighScore();
@@ -1562,11 +1650,13 @@ function startGame() {
 function gameOver() {
     isPlaying = false;
     cancelAnimationFrame(animationId);
+    pauseBtn.style.display = 'none';
     
     // Save high score unconditionally as it represents the highest score achieved
     saveStoredHighScore(highScore);
     
     // Big explosion at player
+    playSound('explosion');
     triggerScreenShake(30, 12);
     createExplosion(player.x, player.y, 'tough');
     for(let i=0; i<30; i++) particles[i].update(); // pre-warm
@@ -1600,6 +1690,30 @@ startBtn.addEventListener('click', startGame);
 restartBtn.addEventListener('click', startGame);
 const submitScoreBtn = document.getElementById('submit-score-btn');
 if(submitScoreBtn) submitScoreBtn.addEventListener('click', submitScore);
+
+// --- PAUSE & AUDIO LOGIC ---
+function togglePause() {
+    if (!isPlaying || levelUpScreen.classList.contains('hidden') === false) return;
+    isPaused = !isPaused;
+    if (isPaused) {
+        pauseScreen.classList.remove('hidden');
+        pauseBtn.style.display = 'none';
+        for (let key in keys) { keys[key] = false; }
+    } else {
+        pauseScreen.classList.add('hidden');
+        pauseBtn.style.display = 'block';
+    }
+}
+if(pauseBtn) pauseBtn.addEventListener('click', togglePause);
+if(resumeBtn) resumeBtn.addEventListener('click', togglePause);
+if(quitBtn) quitBtn.addEventListener('click', () => { location.reload(); });
+if(volumeSlider) {
+    volumeSlider.addEventListener('input', (e) => {
+        sfxVolume = parseFloat(e.target.value);
+        volumeLabel.innerText = Math.round(sfxVolume * 100) + '%';
+        if (globalGain) globalGain.gain.value = sfxVolume;
+    });
+}
 
 // Initialize UI on load
 const highScoreDisplay = document.getElementById('high-score-display');
