@@ -137,8 +137,14 @@ h1 {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
+    text-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
     letter-spacing: 2px;
+    animation: neonPulse 2s infinite alternate;
+}
+
+@keyframes neonPulse {
+    0% { filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.4)) drop-shadow(0 0 15px rgba(255, 0, 255, 0.5)); }
+    100% { filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.8)) drop-shadow(0 0 30px rgba(255, 0, 255, 0.8)); }
 }
 
 h2 {
@@ -147,6 +153,12 @@ h2 {
     margin-bottom: 30px;
     color: #ff3366;
     text-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+    animation: neonFlicker 3s infinite alternate;
+}
+
+@keyframes neonFlicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { text-shadow: 0 0 10px #ff3366, 0 0 20px #ff3366, 0 0 30px #ff3366; color: #ff3366; }
+    20%, 24%, 55% { text-shadow: none; color: #551122; }
 }
 
 p {
@@ -185,6 +197,13 @@ p {
     color: #00ffff;
     text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
     display: block;
+    animation: popScore 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popScore {
+    0% { transform: scale(0.5); text-shadow: 0 0 0px #0ff; }
+    50% { transform: scale(1.2); text-shadow: 0 0 30px #0ff; }
+    100% { transform: scale(1); text-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
 }
 
 #end-high-score {
@@ -210,6 +229,20 @@ p {
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
+    transform: rotate(45deg) translate(-100%, -100%);
+    opacity: 0;
 }
 
 .glass-btn:hover {
@@ -217,6 +250,15 @@ p {
     border: 1px solid rgba(255, 255, 255, 0.4);
     box-shadow: 0 8px 32px 0 rgba(0, 255, 255, 0.2), 0 0 15px rgba(255, 0, 255, 0.3);
     transform: translateY(-2px);
+}
+
+.glass-btn:hover::after {
+    animation: buttonShine 0.8s forwards;
+}
+
+@keyframes buttonShine {
+    0% { transform: rotate(45deg) translate(-100%, -100%); opacity: 1; }
+    100% { transform: rotate(45deg) translate(20%, 20%); opacity: 0; }
 }
 
 .glass-btn:active {
@@ -240,6 +282,20 @@ p {
     background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
     box-shadow: 0 0 10px #4facfe;
     transition: width 0.3s ease-out;
+    position: relative;
+}
+
+#xp-bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background-color: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #fff, 0 0 20px #00f2fe;
 }
 
 /* --- Level Up Screen --- */

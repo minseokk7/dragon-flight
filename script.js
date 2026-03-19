@@ -30,7 +30,17 @@ async function fetchLeaderboard() {
         if (error) throw error;
         
         const html = data.length > 0 
-            ? data.map((row, i) => `<li><span>${i+1}. ${row.player_name}</span> <span>${row.score}</span></li>`).join('')
+            ? data.map((row, i) => {
+                let rankStr = `${i+1}.`;
+                if (i === 0) rankStr = '🥇';
+                else if (i === 1) rankStr = '🥈';
+                else if (i === 2) rankStr = '🥉';
+                
+                const highlightColor = i === 0 ? '#ffd700' : i === 1 ? '#e3e3e3' : i === 2 ? '#cd7f32' : '#eee';
+                const fontWeight = i < 3 ? 'bold' : 'normal';
+                
+                return `<li><span style="color: ${highlightColor}; font-weight: ${fontWeight};">${rankStr} ${row.player_name}</span> <span style="color: ${highlightColor}; font-weight: ${fontWeight};">${row.score}</span></li>`;
+            }).join('')
             : '<li>No scores yet.</li>';
             
         const startList = document.getElementById('start-leaderboard-list');
@@ -155,6 +165,7 @@ let particles = [];
 let items = [];
 let xpGems = [];
 let boss = null;
+let floatingTexts = [];
 
 // Input handling
 const keys = {
@@ -550,6 +561,7 @@ class Enemy {
         // Status Effects
         this.burnTimer = 0;
         this.slowTimer = 0;
+        this.hitFlashTimer = 0;
     }
 
     draw() {
@@ -572,7 +584,11 @@ class Enemy {
         }
         ctx.closePath();
         
-        ctx.fillStyle = `rgba(${this.type === 'tough' ? '255,153,0' : '255,0,85'}, ${this.hp/this.maxHp})`;
+        if (this.hitFlashTimer > 0) {
+            ctx.fillStyle = '#ffffff';
+        } else {
+            ctx.fillStyle = `rgba(${this.type === 'tough' ? '255,153,0' : '255,0,85'}, ${this.hp/this.maxHp})`;
+        }
         ctx.shadowBlur = 15;
         ctx.shadowColor = this.color;
         ctx.fill();
@@ -584,6 +600,8 @@ class Enemy {
     }
 
     update() {
+        if (this.hitFlashTimer > 0) this.hitFlashTimer--;
+
         // Apply Slow effect
         let currentSpeed = this.speed;
         if (this.slowTimer > 0) {
@@ -670,6 +688,36 @@ class Particle {
         this.x += this.dx;
         this.y += this.dy;
         this.alpha -= this.decay;
+        this.draw();
+    }
+}
+
+class FloatingText {
+    constructor(x, y, text, color) {
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.color = color;
+        this.alpha = 1;
+        this.life = 40;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.alpha);
+        ctx.fillStyle = this.color;
+        ctx.font = "bold 20px Outfit";
+        ctx.textAlign = "center";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        ctx.fillText(this.text, this.x, this.y);
+        ctx.restore();
+    }
+
+    update() {
+        this.y -= 1.5;
+        this.life--;
+        if (this.life < 20) this.alpha = this.life / 20;
         this.draw();
     }
 }
@@ -795,6 +843,7 @@ class Boss {
         this.lastShotTime = frameCount;
         this.attackPattern = 0; // Cycles through patterns
         this.attackTimer = 0;
+        this.hitFlashTimer = 0;
     }
 
     draw() {
@@ -810,7 +859,11 @@ class Boss {
         
         // Pulsing glow
         const pulse = Math.abs(Math.sin(frameCount * 0.05));
-        ctx.fillStyle = `rgba(153, 0, 255, ${0.4 + pulse * 0.3})`;
+        if (this.hitFlashTimer > 0) {
+            ctx.fillStyle = '#ffffff';
+        } else {
+            ctx.fillStyle = `rgba(153, 0, 255, ${0.4 + pulse * 0.3})`;
+        }
         ctx.shadowBlur = 30;
         ctx.shadowColor = this.color;
         ctx.fill();
@@ -837,6 +890,8 @@ class Boss {
     }
 
     update() {
+        if (this.hitFlashTimer > 0) this.hitFlashTimer--;
+
         if (this.phase === "entering") {
             this.y += this.speedY;
             if (this.y > 150) {
@@ -927,15 +982,17 @@ function createExplosion(x, y, type) {
     }
 }
 
-// Background stars (3 layers for parallax)
+// Background stars (4 layers for parallax)
 const stars = [];
-for(let i=0; i<3; i++) {
-    const layerStars = Array(30).fill().map(() => ({
+const starColors = ['#ffffff', '#00ffff', '#ffddaa', '#aaffff', '#ffbbee'];
+for(let i=0; i<4; i++) {
+    const layerStars = Array(40).fill().map(() => ({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         size: Math.random() * (i + 1) * 0.8 + 0.5,
         speed: (i + 1) * 0.5 + Math.random() * 0.5,
-        alpha: (i + 1) * 0.3
+        alpha: (i + 1) * 0.25,
+        color: starColors[Math.floor(Math.random() * starColors.length)]
     }));
     stars.push(layerStars);
 }
@@ -944,13 +1001,17 @@ function drawBackground() {
     ctx.fillStyle = 'rgba(5, 5, 16, 0.4)'; // Trail effect
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
+    // Add speed warp effect when boss is present or at high score
+    const speedMultiplier = boss ? 3 : (1 + (score * 0.0002));
+    
     stars.forEach((layer, layerIndex) => {
         layer.forEach(star => {
-            ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+            ctx.fillStyle = star.color;
+            ctx.globalAlpha = star.alpha;
             ctx.beginPath();
-            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+            ctx.ellipse(star.x, star.y, star.size, star.size * Math.max(1, speedMultiplier * 0.8), 0, 0, Math.PI * 2);
             ctx.fill();
-            star.y += star.speed + (score * 0.001 * (layerIndex + 1)); // Speed up layered based on score
+            star.y += (star.speed + (score * 0.001 * (layerIndex + 1))) * speedMultiplier;
             
             if (star.y > canvas.height) {
                 star.y = 0;
@@ -958,6 +1019,7 @@ function drawBackground() {
             }
         });
     });
+    ctx.globalAlpha = 1;
 }
 
 function updateLivesDisplay() {
@@ -1014,6 +1076,7 @@ function initGame() {
     particles = [];
     items = [];
     xpGems = [];
+    floatingTexts = [];
     boss = null;
     score = 0;
     lives = 3;
@@ -1169,6 +1232,7 @@ function animate(currentTime) {
             projectiles.forEach(p => p.draw());
             enemyProjectiles.forEach(ep => ep.draw());
             particles.forEach(p => p.draw());
+            floatingTexts.forEach(ft => ft.draw());
         }
         return;
     }
@@ -1187,6 +1251,7 @@ function animate(currentTime) {
         projectiles.forEach(p => p.draw());
         enemyProjectiles.forEach(ep => ep.draw());
         particles.forEach(p => p.draw());
+        floatingTexts.forEach(ft => ft.draw());
         return; 
     }
     
@@ -1259,6 +1324,14 @@ function animate(currentTime) {
         }
     }
 
+    // Update Floating Texts
+    for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        floatingTexts[i].update();
+        if (floatingTexts[i].life <= 0) {
+            floatingTexts.splice(i, 1);
+        }
+    }
+
     // Update Particles
     for (let i = particles.length - 1; i >= 0; i--) {
         particles[i].update();
@@ -1314,6 +1387,7 @@ function animate(currentTime) {
             
             if (dist - boss.radius - p.radius < 0) {
                 boss.hp -= 2; // player bullets do 2 damage
+                boss.hitFlashTimer = 3;
                 projectiles.splice(j, 1);
                 
                 // Hit effect
@@ -1326,6 +1400,7 @@ function animate(currentTime) {
                     createExplosion(boss.x - 30, boss.y + 20, 'tough');
                     createExplosion(boss.x + 30, boss.y + 20, 'basic');
                     
+                    floatingTexts.push(new FloatingText(boss.x, boss.y, '+500', '#ffd700'));
                     score += 500;
                     updateScoreDisplay();
                     scoreDisplay.style.transform = 'scale(2)';
@@ -1368,6 +1443,7 @@ function animate(currentTime) {
                 // Hit
                 projectiles.splice(j, 1);
                 enemies[i].hp -= player.baseDamage;
+                enemies[i].hitFlashTimer = 3;
                 
                 // Elemental Effects On Hit
                 if (projectile.element === 'Fire') {
@@ -1427,7 +1503,9 @@ function animate(currentTime) {
                 if (enemies[i].hp <= 0) {
                     // Destroy enemy
                     createExplosion(enemies[i].x, enemies[i].y, enemies[i].type);
-                    score += enemies[i].type === 'tough' ? 50 : 10;
+                    const scoreGain = enemies[i].type === 'tough' ? 50 : 10;
+                    floatingTexts.push(new FloatingText(enemies[i].x, enemies[i].y - 20, '+' + scoreGain, '#00ffff'));
+                    score += scoreGain;
                     updateScoreDisplay();
                     
                     // Score pop effect
