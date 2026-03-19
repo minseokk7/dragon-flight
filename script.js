@@ -59,11 +59,15 @@ async function submitScore() {
 
     try {
         // 기존 점수 확인 (동일 이름이 있는지) - 여러 개가 있을 수 있으므로 정렬하여 최상위 하나만 확인
-        const { data: results, error: fetchError } = await supabaseClient
+        const fetchPromise = supabaseClient
             .from('leaderboard')
             .select('id, score')
             .eq('player_name', finalName)
             .order('score', { ascending: false });
+
+        // 타임아웃 처리 (10초)
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000));
+        const { data: results, error: fetchError } = await Promise.race([fetchPromise, timeoutPromise]);
 
         if (fetchError) throw fetchError;
 
@@ -77,6 +81,15 @@ async function submitScore() {
                     .update({ score: score })
                     .eq('id', existingData.id);
                 if (updateError) throw updateError;
+            } else {
+                // 점수가 낮으면 알림 후 종료
+                alert(`Current score (${score}) is not higher than your best (${existingData.score})!`);
+                submitBtn.innerText = 'NOT A HIGH SCORE';
+                setTimeout(() => {
+                    submitBtn.innerText = 'SUBMIT RANK';
+                    submitBtn.disabled = false;
+                }, 2000);
+                return;
             }
         } else {
             // 존재하지 않으면 새로 삽입
@@ -86,13 +99,14 @@ async function submitScore() {
             if (insertError) throw insertError;
         }
         
-        // Hide submit UI, refresh board
+        // 성공 시 UI 숨김 및 리더보드 갱신
         document.getElementById('score-submit-container').classList.add('hidden');
         fetchLeaderboard();
         
     } catch (err) {
         console.error('Error submitting score:', err);
-        submitBtn.innerText = 'Error! Try Again';
+        const msg = err.message === 'Timeout' ? 'Network Timeout. Try again!' : 'Update failed. Try again!';
+        submitBtn.innerText = msg;
         submitBtn.disabled = false;
     }
 }
