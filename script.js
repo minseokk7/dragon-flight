@@ -56,6 +56,17 @@ async function fetchLeaderboard() {
         if(endList) endList.innerHTML = html;
         if(desktopList) desktopList.innerHTML = html;
         
+        // Auto-sync local best score with global leaderboard if the player name matches
+        const savedPlayerName = localStorage.getItem('dragonFlightPlayerName');
+        if (savedPlayerName) {
+            const myRow = data.find(r => r.player_name === savedPlayerName);
+            if (myRow && myRow.score > highScore) {
+                highScore = myRow.score;
+                saveStoredHighScore(highScore);
+                refreshUIHighScores(); // Update texts immediately
+            }
+        }
+        
     } catch (err) {
         console.error('Error fetching leaderboard:', err);
         const errHtml = '<li>Failed to load.</li>';
@@ -117,9 +128,11 @@ async function submitScore() {
             if (insertError) throw insertError;
         }
         
-        // 성공 시 UI 숨김 및 리더보드 갱신
+        // 성공 시 로컬 닉네임 저장, UI 숨김 및 리더보드 갱신
+        localStorage.setItem('dragonFlightPlayerName', finalName);
         document.getElementById('score-submit-container').classList.add('hidden');
         fetchLeaderboard();
+
         
     } catch (err) {
         console.error('Error submitting score:', err);
@@ -1717,10 +1730,18 @@ if(volumeSlider) {
 }
 
 // Initialize UI on load
-const highScoreDisplay = document.getElementById('high-score-display');
-if (highScoreDisplay) highScoreDisplay.innerText = `BEST: ${highScore}`;
-const topBarHighScoreDisplay = document.getElementById('top-bar-high-score');
-if (topBarHighScoreDisplay) topBarHighScoreDisplay.innerText = highScore;
+function refreshUIHighScores() {
+    const highScoreDisplay = document.getElementById('high-score-display');
+    if (highScoreDisplay) highScoreDisplay.innerText = `BEST: ${highScore}`;
+    const topBarHighScoreDisplay = document.getElementById('top-bar-high-score');
+    if (topBarHighScoreDisplay) topBarHighScoreDisplay.innerText = highScore;
+}
+refreshUIHighScores();
+
+// Restore previous player name if exists
+const savedName = localStorage.getItem('dragonFlightPlayerName');
+const nameInput = document.getElementById('player-name-input');
+if (savedName && nameInput) nameInput.value = savedName;
 
 // Draw initial static background
 drawBackground();
