@@ -305,6 +305,8 @@ function handleInteractionEnd() {
 }
 
 function updateTargetPosition(e) {
+    if (e.cancelable) e.preventDefault(); // Prevent mobile screen scrolling
+
     const rect = canvas.getBoundingClientRect();
     let clientX, clientY;
 
@@ -328,8 +330,8 @@ canvas.addEventListener('mousedown', handleInteractionStart);
 window.addEventListener('mousemove', handleInteractionMove);
 window.addEventListener('mouseup', handleInteractionEnd);
 
-canvas.addEventListener('touchstart', handleInteractionStart, {passive: true});
-window.addEventListener('touchmove', handleInteractionMove, {passive: true});
+canvas.addEventListener('touchstart', handleInteractionStart, {passive: false});
+window.addEventListener('touchmove', handleInteractionMove, {passive: false});
 window.addEventListener('touchend', handleInteractionEnd);
 
 class Player {
