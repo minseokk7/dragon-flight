@@ -56,12 +56,10 @@ async function fetchLeaderboard() {
         if(endList) endList.innerHTML = html;
         if(desktopList) desktopList.innerHTML = html;
         
-        // Supabase에 저장된 자신의 최고 점수를 BEST로 설정 (DB 100% 종속)
-        const savedPlayerName = localStorage.getItem('dragonFlightPlayerName');
-        if (savedPlayerName) {
-            const myRow = data.find(r => r.player_name === savedPlayerName);
-            if (myRow && myRow.score > highScore) {
-                highScore = myRow.score;
+        // Supabase에 저장된 가장 높은 점수(1등 점수)를 BEST(World Record)로 동기화
+        if (data.length > 0) {
+            if (data[0].score > highScore) {
+                highScore = data[0].score;
                 refreshUIHighScores(); 
             }
         }
