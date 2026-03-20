@@ -468,3 +468,89 @@ p {
     padding: 10px 20px;
     font-size: 1rem;
 }
+
+/* --- Responsive Panels (Desktop vs Mobile) --- */
+.desktop-only { display: none; }
+.mobile-only { display: block; }
+.mobile-only-text { display: block; margin-bottom: 20px; color: #aaa; text-shadow: none;}
+.desktop-only-text { display: none; }
+
+@media (min-width: 800px) {
+    #page-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    #game-container {
+        flex-shrink: 0;
+        width: 100%;
+        max-width: 600px;
+        margin: 0; 
+        border-left: 1px solid rgba(0, 255, 255, 0.2);
+        border-right: 1px solid rgba(0, 255, 255, 0.2);
+        box-shadow: 0 0 50px rgba(0, 255, 255, 0.1);
+    }
+
+    .desktop-only { display: flex; flex-direction: column; }
+    .mobile-only { display: none !important; }
+    .desktop-only-text { display: block; margin-bottom: 20px; color: #aaa; text-shadow: none; font-size: 1.2rem;}
+    .mobile-only-text { display: none !important; }
+
+    .side-panel {
+        width: 320px;
+        background: rgba(5, 5, 20, 0.85);
+        padding: 40px 20px;
+        box-sizing: border-box;
+        color: white;
+        z-index: 5;
+    }
+    
+    #left-panel { border-right: 2px solid rgba(0, 255, 255, 0.3); }
+    #right-panel { border-left: 2px solid rgba(0, 255, 255, 0.3); }
+
+    .panel-title {
+        font-size: 1.5rem;
+        color: #00ffff;
+        text-align: center;
+        margin-bottom: 20px;
+        text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+    
+    .panel-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .panel-list li {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 1.1rem;
+        color: #eee;
+    }
+    
+    .controls-info {
+        background: rgba(0,0,0,0.5);
+        border-radius: 10px;
+        padding: 20px;
+        border: 1px solid rgba(255,255,255,0.1);
+        margin-top: 20px;
+    }
+    
+    .controls-info p {
+        margin-bottom: 15px;
+        font-size: 1.1rem;
+        text-align: left;
+        color: #ddd;
+    }
+    
+    #start-screen h1 {
+        font-size: 5rem;
+    }
+}

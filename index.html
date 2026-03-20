@@ -8,7 +8,15 @@
     <link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
-    <div id="game-container">
+    <div id="page-wrapper">
+        <div id="left-panel" class="desktop-only side-panel">
+            <h2 class="panel-title">GLOBAL TOP 5</h2>
+            <ul id="desktop-leaderboard-list" class="panel-list">
+                <li>Loading...</li>
+            </ul>
+        </div>
+        
+        <div id="game-container">
         <canvas id="game-canvas"></canvas>
         
         <div id="ui-layer">
@@ -29,8 +37,9 @@
 
             <div id="start-screen" class="screen active">
                 <h1>DRAGON<br>FLIGHT</h1>
-                <p>Drag to move & auto-shoot</p>
-                <div id="start-leaderboard-container">
+                <p class="mobile-only-text">Touch & Drag to move</p>
+                <p class="desktop-only-text">Mouse Drag or WASD to Move</p>
+                <div id="start-leaderboard-container" class="mobile-only">
                     <h3>GLOBAL TOP 5</h3>
                     <ul id="start-leaderboard-list">
                         <li>Loading...</li>
@@ -69,7 +78,7 @@
                     <button id="submit-score-btn" class="glass-btn small-btn">SUBMIT RANK</button>
                 </div>
 
-                <div id="end-leaderboard-container">
+                <div id="end-leaderboard-container" class="mobile-only">
                     <h3>GLOBAL TOP 5</h3>
                     <ul id="end-leaderboard-list">
                         <li>Loading...</li>
@@ -101,9 +110,20 @@
                 </div>
             </div>
         </div>
+        
+        <div id="right-panel" class="desktop-only side-panel">
+            <h2 class="panel-title">HOW TO PLAY</h2>
+            <div class="controls-info">
+                <p>🖱️ <b>Mouse:</b> Drag to move</p>
+                <p>⌨️ <b>WASD/Arrows:</b> Move</p>
+                <p>⏸ <b>P / Esc:</b> Pause</p>
+                <p>🔥 <b>Auto-Shoot</b> active</p>
+            </div>
+            <div class="version-info" style="margin-top: auto; opacity: 0.5; font-size: 0.8rem; text-align: center;">Dragon Flight v1.3.0</div>
+        </div>
     </div>
     <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js?v=15"></script>
+    <script src="script.js?v=16"></script>
 </body>
 </html>

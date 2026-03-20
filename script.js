@@ -49,11 +49,12 @@ async function fetchLeaderboard() {
                 return `<li><span style="color: ${highlightColor}; font-weight: ${fontWeight};">${rankStr} ${row.player_name}</span> <span style="color: ${highlightColor}; font-weight: ${fontWeight};">${row.score}</span></li>`;
             }).join('')
             : '<li>No scores yet.</li>';
-            
         const startList = document.getElementById('start-leaderboard-list');
         const endList = document.getElementById('end-leaderboard-list');
+        const desktopList = document.getElementById('desktop-leaderboard-list');
         if(startList) startList.innerHTML = html;
         if(endList) endList.innerHTML = html;
+        if(desktopList) desktopList.innerHTML = html;
         
     } catch (err) {
         console.error('Error fetching leaderboard:', err);
