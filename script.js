@@ -56,14 +56,13 @@ async function fetchLeaderboard() {
         if(endList) endList.innerHTML = html;
         if(desktopList) desktopList.innerHTML = html;
         
-        // Auto-sync local best score with global leaderboard if the player name matches
+        // Supabase에 저장된 자신의 최고 점수를 BEST로 설정 (DB 100% 종속)
         const savedPlayerName = localStorage.getItem('dragonFlightPlayerName');
         if (savedPlayerName) {
             const myRow = data.find(r => r.player_name === savedPlayerName);
             if (myRow && myRow.score > highScore) {
                 highScore = myRow.score;
-                saveStoredHighScore(highScore);
-                refreshUIHighScores(); // Update texts immediately
+                refreshUIHighScores(); 
             }
         }
         
@@ -152,17 +151,11 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 // Game State
-function getStoredHighScore() {
-    try { return parseInt(localStorage.getItem('dragonFlightHighScoreV2')) || 0; } catch(e) { return 0; }
-}
-function saveStoredHighScore(val) {
-    try { localStorage.setItem('dragonFlightHighScoreV2', val); } catch(e) {}
-}
-
+// Note: High score is now exclusively fetched from Supabase using user's submitted name.
 let isPlaying = false;
 let isPaused = false;
 let score = 0;
-let highScore = getStoredHighScore();
+let highScore = 0;
 let lives = 3;
 let level = 1;
 let xp = 0;
@@ -1130,10 +1123,9 @@ function updateLivesDisplay() {
 
 function updateScoreDisplay() {
     scoreDisplay.innerText = score;
-    // Update real-time high score if playing
+    // Update real-time high score visually if playing (does not save to DB until submitted)
     if (score > highScore) {
         highScore = score;
-        saveStoredHighScore(highScore); // Now saves immediately when broken!
         const topBarHighScore = document.getElementById('top-bar-high-score');
         if (topBarHighScore) {
             topBarHighScore.innerText = highScore;
@@ -1657,10 +1649,7 @@ function startGame() {
     topBar.classList.add('visible');
     pauseBtn.style.display = 'block';
     
-    // Pull the latest high score from storage just in case
-    highScore = getStoredHighScore();
-    
-    // Make sure high score is shown at start
+    // DB와 동기화된 최신 highScore를 노출
     const topBarHighScore = document.getElementById('top-bar-high-score');
     if (topBarHighScore) topBarHighScore.innerText = highScore;
     
@@ -1673,9 +1662,6 @@ function gameOver() {
     isPlaying = false;
     cancelAnimationFrame(animationId);
     pauseBtn.style.display = 'none';
-    
-    // Save high score unconditionally as it represents the highest score achieved
-    saveStoredHighScore(highScore);
     
     // Big explosion at player
     playSound('explosion');
