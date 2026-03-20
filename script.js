@@ -1100,15 +1100,23 @@ function drawBackground() {
     
     stars.forEach((layer, layerIndex) => {
         layer.forEach(star => {
-            ctx.fillStyle = star.color;
-            ctx.globalAlpha = star.alpha;
-            ctx.beginPath();
-            ctx.ellipse(star.x, star.y, star.size, star.size * Math.max(1, speedMultiplier * 0.8), 0, 0, Math.PI * 2);
-            ctx.fill();
+            const prevY = star.y; // Store previous Y position
             star.y += (star.speed + (score * 0.001 * (layerIndex + 1))) * speedMultiplier;
             
+            // Draw hyperspace trail (motion blur streak)
+            ctx.strokeStyle = star.color;
+            ctx.globalAlpha = star.alpha;
+            ctx.lineWidth = Math.max(1.5, star.size * 1.5); // Ensure visibility
+            ctx.lineCap = 'round';
+            
+            ctx.beginPath();
+            ctx.moveTo(star.x, prevY);
+            ctx.lineTo(star.x, star.y);
+            ctx.stroke();
+            
             if (star.y > canvas.height) {
-                star.y = 0;
+                // Spawn slightly above canvas randomly to spread out entrance
+                star.y = -Math.random() * 50; 
                 star.x = Math.random() * canvas.width;
             }
         });
